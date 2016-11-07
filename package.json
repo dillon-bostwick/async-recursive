@@ -1,5 +1,30 @@
 {
-	"dependencies": {
-		"clone": "2.0.0"
-	}
+  "name": "async-recurse",
+  "version": "1.0.0",
+  "description": "traverse an Object and asynchronously run a task on each element, call a callback when finished, extra options for extra-picky recursion",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dillonbostwick/async-recursive.git"
+  },
+  "keywords": [
+    "async",
+    "recursive",
+    "traverse",
+    "object"
+  ],
+  "author": "Dillon Bostwick",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dillonbostwick/async-recursive/issues"
+  },
+  "homepage": "https://github.com/dillonbostwick/async-recursive#readme",
+  "dependencies": {
+    "clone": "2.0.0",
+    "lodash": "4.16.6"
+  }
 }
