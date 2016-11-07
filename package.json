@@ -1,6 +1,6 @@
 {
   "name": "async-recurse",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "traverse an Object and asynchronously run a task on each element, call a callback when finished, extra options for extra-picky recursion",
   "main": "index.js",
   "devDependencies": {},
