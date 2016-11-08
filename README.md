@@ -1,19 +1,39 @@
 # async-recurse
 
 ```
-// Perform action on each element of targetObject, perform done when finished
-asyncRecurse(targetObject, action, done, options);
+asyncRecurse(targetObject, iteratee, done, options);
 ```
 
-### action(key, value, callback) You get the key and value of each element.
-Callback function(err, result) where result will replace the value of the
-element in the final results. Calling the callback with a non-null err value
-will end the traversal immediately and trigger the done callback.
+### iteratee(key, value, callback
+
+Modify the value as you'd like (key is read- only) then call callback(err,
+result) where result will replace the value of the element in the final
+results. Calling the callback with an err value will immaturely terminate the
+traversal of all elements and trigger the done callback immediately. Pass one
+argument as callback(err) if you don't want to modify the results. Key is not
+always the object literal key. It can be the index of an element of an array
+or simply null if includeBranches is on and value is the root.
 
 ### done(err, results)
-done is called when all actions during the traversal are completed or if any action
-callbacks with a non-null error. Results is the new object with values replaced.
-(The original object is not changed).
+
+Called when all iteratees during the traversal are completed or if any iteratee
+callbacks with a non-null error. The original object is not mutated but
+results will show the compilation each result of individual iteratees.
+
+### Options:
+
+| Name            | Type    | Default  |
+|-----------------|---------|----------|
+| includeLeaves   | Boolean | true     |
+| includeBranches | Boolean | true     |
+| parallel		  | Boolean | true	   |
+| depth           | Number  | Infinity |
+| order			  | one of pre', 'in', 'post' | 'pre' |
+
+If parallel is off, iteratees will waterfall, blocking the traversal until
+completion. Even if parallel is on, you can still specify order and iteratees
+will begin executing in that order without blocking next iteratees. Either
+way, the final callback won't execute until all iteratees have completed
 
 ### Example #1:
 ```
@@ -32,9 +52,8 @@ var blogPost = {
 }
 
 var options: {
-	includeLeaves: true,
-	includeNonLeaves: true,
-	depth: Infinity
+	includeLeaves: false,
+	parallel: true
 }
 
 var populateField = (key, value, callback) => {
@@ -57,10 +76,10 @@ asyncRecurse(blogPost, populateField, done, options);
 
 ``` 
 
-### Example #2: perform action on elements without changing results
+### Example #2: perform iteratee on elements without changing results
 ```
-populateField = (key, value, callback) => {
-	console.log(key, value);
+logField = (key, value, callback) => {
+	console.log('Arrived at: ' + key + ': ' + value + '\n');
 
 	setTimeout(() => {
 		callback(null);
@@ -68,6 +87,15 @@ populateField = (key, value, callback) => {
 }
 
 done = (err) => {
+	if(err) throw err;
+
 	console.log('Finished traversal');
 }
+
+asyncRecurse(blogPost, logField, done);
 ```
+
+
+
+
+by [Dillon Bostwick](http://linkedin.com/in/dillonbostwick)

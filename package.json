@@ -1,11 +1,14 @@
 {
   "name": "async-recurse",
-  "version": "1.0.2",
-  "description": "traverse an Object and asynchronously run a task on each element, call a callback when finished, extra options for extra-picky recursion",
+  "version": "1.0.7",
+  "description": "Run an asynchronous action on each element of an object, then perform a final callback when the entire traversal is finished",
   "main": "index.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "3.1.2",
+    "chai": "3.5.0"
+  },
   "scripts": {
-    "test": "node test.js"
+    "test": "mocha test.js"
   },
   "repository": {
     "type": "git",
@@ -24,7 +27,6 @@
   },
   "homepage": "https://github.com/dillonbostwick/async-recursive#readme",
   "dependencies": {
-    "clone": "2.0.0",
     "lodash": "4.16.6"
   }
 }
