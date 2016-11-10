@@ -38,7 +38,7 @@ describe('async-recurse', () => {
 	describe('argument validation', () => {
 		it('should require first arg to be an object', () => {
 			try {
-				asyncRecurse(1, validAction, validCallback)
+				asyncRecurse(1, validAction, validCallback, validOptions)
 				asyncRecurse('', validAction, validCallback, validOptions)
 			} catch(err) {
 				expect(err).to.be.ok;
@@ -47,10 +47,10 @@ describe('async-recurse', () => {
 
 		it('should require second and third args to be functions', () => {
 			try {
-				asyncRecurse(validObject, validAction, 1);
+				asyncRecurse(validObject, validAction, 1, validOptions);
 				asyncRecurse(validObject, 1, validCallback, validOptions);
 			} catch(err) {
-				expect(err).to.be.ok;
+				expect(err).to.be.ok; //fail
 			}
 		});
 
@@ -58,7 +58,7 @@ describe('async-recurse', () => {
 			try {
 				asyncRecurse(validObject, validAction, validCallback, 1)
 			} catch(err) {
-				expect(err).to.be.ok;
+				expect(err).to.be.ok; //fail
 			}
 		});
 	});

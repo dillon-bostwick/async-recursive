@@ -3,14 +3,15 @@
  */
 
 var _ = require('lodash');
+var async = require('async');
 
 
 const defaultOptions = {
 	includeLeaves: true,
 	includeBranches: true,
 	parallel: true,
-	depth: Infinity,
-	order: 'pre'
+	breadthFirst: true,
+	depth: Infinity
 }
 
 /**
@@ -25,30 +26,42 @@ const defaultOptions = {
  * 			-> result: Object matching obj
  * options: Object
  */
-var asyncRecurse = (obj, iteratee, callback, options) => {
-	validateArguments(obj, iteratee, callback, options)
+var asyncRecurse = (root, iteratee, done, options) => {
+	validateArguments(root, iteratee, callback, options)
+	options = options ? _.defaults(options, defaultOptions) : defaultOptions;
 
-	options = _.defaults(defaultOptions, options);
+	var iterateeQueue = async.queue()
 
-console.log(options);
-	return (options);
-
-	recurse(null, obj, iteratee, callback, options, 0); // null represents the root key
+	recurse(null, obj, iteratee, done, options, 0); // null represents the root key
 };
 
 
 
-function recurse(key, value, iteratee, callback, options, count) {
-	if (count > options.depth) callback(null, null); //check depth
+function recurse(key, value, iteratee, done, options, count) {
+	if (count > options.depth) return; //check depth
 
-	if (_.isObject(obj)) { // is leaf
+	var cb = (err) => { assert(!err) }; // TODO
 
-	} else { // is branch
-
+	if (_.isObject(obj)) { // is branch
+		if (!breadthFirst) recurseOnEach(obj);
+		if (options.includeBranches) iteratee(key, value, cb);
+		if (breadthFirst) recurseOnEach(obj);
+	} else { // is leaf
+		if (options.includeLeaves) iteratee(key, value, cb);
 	}
-
-	action(obj);
 }
+
+function recurseOnEach(obj, iteratee, done, options, count) {
+	// if obj is array lodash sets key as the index Number
+	_.each(obj, (value, key) => {
+		recurse(key, value, iteratee, done, options, count + 1);
+	});
+}
+
+//TODO:
+// done, parallel vs waterfall
+
+
 
 
 
@@ -56,20 +69,19 @@ function recurse(key, value, iteratee, callback, options, count) {
 /**
  * Throw a TypeError if validation fails
  */
-function validateArguments(obj, iteratee, callback, options) {
+function validateArguments(root, iteratee, callback, options) {
 	var orderChoices = ['pre', 'in', 'post'];
 
-	if (obj === undefined) throw new TypeError('Expected ' + obj + ' to not be undefined');
 	if (!_.isFunction(iteratee)) throw new TypeError('Expected ' + iteratee + ' to be a function');
 	if (!_.isFunction(callback)) throw new TypeError('Expected ' + callback + ' to be a function');
 	if (options && !_.isPlainObject(options)) throw new TypeError('Expected ' + options + ' to be an object');
 
 	if (options) {
-		if (!_.isUndefined(includeLeaves) && !_.isBoolean(includeLeaves)) throw new TypeError('Expected ' + includeLeaves + ' to be a Boolean');
-		if (!_.isUndefined(includeBranches) && !_.isBoolean(includeBranches)) throw new TypeError('Expected ' + includeBranches + ' to be a Boolean');
-		if (!_.isUndefined(parallel) && !_.isBoolean(parallel)) throw new TypeError('Expected ' + paralell + ' to be a Boolean');
-		if (!_.isUndefined(depth) && !_.isNumber(depth)) throw new TypeError('Expected ' + depth + ' to be a Number');
-		if (!_.isUndefined(order) && !_.includes(orderChoices, order)) throw new TypeError('Expected ' + order + ' to be "pre", "in", or "post');
+		if (!_.isUndefined(options.includeLeaves)	&& !_.isBoolean(options.includeLeaves))   throw new TypeError('Expected ' + options.includeLeaves   + ' to be a Boolean');
+		if (!_.isUndefined(options.includeBranches) && !_.isBoolean(options.includeBranches)) throw new TypeError('Expected ' + options.includeBranches + ' to be a Boolean');
+		if (!_.isUndefined(options.parallel)        && !_.isBoolean(options.parallel)) 		  throw new TypeError('Expected ' + options.paralell 		+ ' to be a Boolean');
+		if (!_.isUndefined(options.breadthFirst)    && !_.isNumber(options.breadthFirst)) 	  throw new TypeError('Expected ' + options.breadthFirst 	+ ' to be a Boolean');
+		if (!_.isUndefined(options.depth) 			&& !_.isNumber(options.depth)) 		  	  throw new TypeError('Expected ' + options.depth 			+ ' to be a Number');
 	}
 }
 

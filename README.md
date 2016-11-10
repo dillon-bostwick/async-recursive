@@ -27,13 +27,13 @@ results will show the compilation each result of individual iteratees.
 | includeLeaves   | Boolean | true     |
 | includeBranches | Boolean | true     |
 | parallel		  | Boolean | true	   |
+| breadthFirst	  | Boolean | true     |
 | depth           | Number  | Infinity |
-| order			  | one of pre', 'in', 'post' | 'pre' |
 
 If parallel is off, iteratees will waterfall, blocking the traversal until
-completion. Even if parallel is on, you can still specify order and iteratees
-will begin executing in that order without blocking next iteratees. Either
-way, the final callback won't execute until all iteratees have completed
+completion. Even if parallel is on, the final callback won't execute until all
+iteratees have completed. !breadthFirst is depthFirst. See
+[here](https://en.wikipedia.org/wiki/Tree_traversal) for more on BFS vs. DFS.
 
 ### Example #1:
 ```
