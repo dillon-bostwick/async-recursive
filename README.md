@@ -1,7 +1,9 @@
 # async-recurse
 
+## Note: Build is unstable. Patch soon.
+
 ```
-asyncRecurse(targetObject, iteratee, done, options);
+asyncRecurse(targetObject, worker, done, options);
 ```
 
 ### iteratee(key, value, callback

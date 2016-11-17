@@ -1,6 +1,6 @@
 {
   "name": "async-recurse",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Run an asynchronous action on each element of an object, then perform a final callback when the entire traversal is finished",
   "main": "index.js",
   "devDependencies": {

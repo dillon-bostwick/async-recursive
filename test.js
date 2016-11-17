@@ -69,7 +69,7 @@ describe('async-recurse', () => {
 		});
 
 		it('should default missing option properties if some options werent specified', () => {
-
+			
 		})
 	})
 });

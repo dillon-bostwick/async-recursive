@@ -4,6 +4,7 @@
 
 var _ = require('lodash');
 var async = require('async');
+var clone = require('clone');
 
 
 const defaultOptions = {
@@ -16,50 +17,61 @@ const defaultOptions = {
 
 /**
  * obj: Object
- * action: function(element, callback)
+ * worker: function(element, callback)
  * 			-> element: any type
  * 			-> callback: function(err, element)
  * 				-> err: Error
- * 				-> element: any type, Object if !onlyLeafs
- * callback: function(err, result)
+ * 				-> element: any type, always Object if !onlyLeafs
+ * done: function(err, result)
  * 			-> err: Error
- * 			-> result: Object matching obj
+ * 			-> result: Object matching obj keys but maybe new vals from workers
  * options: Object
  */
-var asyncRecurse = (root, iteratee, done, options) => {
+var asyncRecurse = (root, worker, done, options) => {
 	validateArguments(root, iteratee, callback, options)
+
 	options = options ? _.defaults(options, defaultOptions) : defaultOptions;
 
-	var iterateeQueue = async.queue()
+	q = async.queue(iteratee, options.parallel ? Infinity : 1); // set concurrency to be parallel or waterfall
 
-	recurse(null, obj, iteratee, done, options, 0); // null represents the root key
+	var results = clone(root);
+
+	var err = doRecurse(obj, results, worker, options);
+
+	// traversal is finished
+
+	// either traversal ended prematurely
+	if (err) done(err, null)
+	
+	// or traversal completed and the next time q drains, all workers finished
+	q.drain = () => done(null, result)
 };
 
 
+function doRecurse(obj, results, worker, options, workerQueue) {
+	workerQueue.push(obj);
 
-function recurse(key, value, iteratee, done, options, count) {
-	if (count > options.depth) return; //check depth
+	if (options.breadthFirst) {
+		var traversalQueue = [obj];
 
-	var cb = (err) => { assert(!err) }; // TODO
+		_.each(obj, (value, key) => {
 
-	if (_.isObject(obj)) { // is branch
-		if (!breadthFirst) recurseOnEach(obj);
-		if (options.includeBranches) iteratee(key, value, cb);
-		if (breadthFirst) recurseOnEach(obj);
-	} else { // is leaf
-		if (options.includeLeaves) iteratee(key, value, cb);
+		});
+	} else {
+
 	}
 }
 
-function recurseOnEach(obj, iteratee, done, options, count) {
-	// if obj is array lodash sets key as the index Number
-	_.each(obj, (value, key) => {
-		recurse(key, value, iteratee, done, options, count + 1);
-	});
-}
 
-//TODO:
-// done, parallel vs waterfall
+
+
+
+
+
+
+
+
+
 
 
 
