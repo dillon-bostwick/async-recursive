@@ -17,8 +17,8 @@ const defaultOptions = {
 
 /**
  * obj: Object
- * worker: function(element, callback)
- * 			-> element: any type
+ * worker: function(value, key, callback)
+ * 			-> value, key
  * 			-> callback: function(err, element)
  * 				-> err: Error
  * 				-> element: any type, always Object if !onlyLeafs
@@ -54,15 +54,32 @@ function doRecurse(obj, results, worker, options, workerQueue) {
 	if (options.breadthFirst) {
 		var traversalQueue = [obj];
 
-		_.each(obj, (value, key) => {
+		while (!_.isEmpty(traversalQueue)) {
+			_.each(shift(traversalQueue), (value, key) => {
+				if ((_.isObject(value) && options.includeBranches) ||
+					(!_.isObject(value) && options.includeLeaves)) {
+					workerQueue.push((err) => {
+						worker(value, key, (err, result) => {
+							if (err) return err;
 
-		});
-	} else {
+							// value = result?
+						})
+					});
+				}
 
+				if (_.isObject(value)) {
+					traversalQueue.push(value);
+				}
+			});
+		}
+	} else { //depth first
+		depthFirstRecurse(null, obj, results, worker, options, workerQueue)
 	}
 }
 
+function  {
 
+}
 
 
 
