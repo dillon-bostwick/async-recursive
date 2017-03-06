@@ -13,7 +13,29 @@ const defaultOptions = {
 	parallel: true,
 	breadthFirst: true,
 	depth: Infinity
-}
+};
+
+
+
+
+
+
+var asyncRecurse = (rootObj, worker, options, done) => {
+	
+
+};
+
+var asyncRecursePromised = (rootObj, worker, options) => {
+	return new Promise((resolve, reject) => {
+		
+	});
+};
+
+
+
+
+
+
 
 /**
  * obj: Object
@@ -34,14 +56,14 @@ var asyncRecurse = (root, worker, done, options) => {
 
 	q = async.queue(iteratee, options.parallel ? Infinity : 1); // set concurrency to be parallel or waterfall
 
-	var results = clone(root);
+	let results = clone(root);
 
-	var err = doRecurse(obj, results, worker, options);
+	let err = doRecurse(obj, results, worker, options);
 
 	// traversal is finished
 
 	// either traversal ended prematurely
-	if (err) done(err, null)
+	if (err) return done(err, null)
 	
 	// or traversal completed and the next time q drains, all workers finished
 	q.drain = () => done(null, result)
@@ -52,7 +74,7 @@ function doRecurse(obj, results, worker, options, workerQueue) {
 	workerQueue.push(obj);
 
 	if (options.breadthFirst) {
-		var traversalQueue = [obj];
+		let traversalQueue = [obj];
 
 		while (!_.isEmpty(traversalQueue)) {
 			_.each(shift(traversalQueue), (value, key) => {
@@ -77,10 +99,10 @@ function doRecurse(obj, results, worker, options, workerQueue) {
 	}
 }
 
-function  {
+
+function depthFirstRecurse() {
 
 }
-
 
 
 
