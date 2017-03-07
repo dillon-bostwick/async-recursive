@@ -7,7 +7,7 @@ const async = require('async');
 
 const defaultOptions = {
 	includeLeaves: true,
-	includeBranches: true,
+	includeBranches: false,
 	parallel: true
 };
 
