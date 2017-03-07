@@ -2,142 +2,104 @@
  * Dillon Bostwick
  */
 
-var _ = require('lodash');
-var async = require('async');
-var clone = require('clone');
-
+const _ = require('lodash');
+const async = require('async');
 
 const defaultOptions = {
 	includeLeaves: true,
 	includeBranches: true,
-	parallel: true,
-	breadthFirst: true,
-	depth: Infinity
+	parallel: true
 };
 
+const handleInput = (rootObj, iteratee, options, done) => {
+	if (_.isUndefined(rootObj) || (!_.isFunction(iteratee) && !(iteratee instanceof Promise))) {
+		throw new TypeError('Must pass rootObj and iteratee')
+	}
 
+	if (options && _.isObject(options)) {
+		_.each(options, (option) => {
+			if (!_.isBoolean(option)) {
+				throw new TypeError('All options should be boolean')
+			}
+		})
 
+		_.defaults(options, defaultOptions)
+	} else {
+		options = defaultOptions
+	}
 
+	if (!_.isUndefined(done)) {
+		if (!_.isFunction(done)) {
+			throw new TypeError('fourth argument must be function');
+		};
 
+		asyncRecurse(rootObj, iteratee, options, done);
+		return null;
+	}
 
-var asyncRecurse = (rootObj, worker, options, done) => {
-	
-
+	return asyncRecursePromised(rootObj, iteratee, options)
 };
 
-var asyncRecursePromised = (rootObj, worker, options) => {
+function asyncRecurse(rootObj, iteratee, options, done) {
+	queue = async.queue(iteratee, options.parallel ? Infinity : 1);
+	queue.drain = () => done(null);
+
+	if (_.isObject(rootObj) && _.isEmpty(rootObj) && !options.include) {
+		return done(null);
+	}
+
+	doRecurse(rootObj, iteratee, options, queue, done);
+
+	// immediately after synchronous traverse
+	if (!queue.started) { // nothing added
+		return done(null); // prevent hang
+	}
+};
+
+// Returns a promise. Also, iteratee can be a promise
+function asyncRecursePromised(rootObj, iteratee, options) {
+	// if iteratee is a Promise then convert to a traditional callback function
+	const callbackedIteratee = iteratee instanceof Promise ? (val, callback) => {
+		iteratee
+		.then(() => callback(null))
+		.catch(callback);
+	} : iteratee;
+
 	return new Promise((resolve, reject) => {
-		
+		return asyncRecurse(rootObj, callbackedIteratee, options, (err) => {
+			return err ? reject(err) : resolve(null);
+		});
 	});
 };
 
-
-
-
-
-
-
-/**
- * obj: Object
- * worker: function(value, key, callback)
- * 			-> value, key
- * 			-> callback: function(err, element)
- * 				-> err: Error
- * 				-> element: any type, always Object if !onlyLeafs
- * done: function(err, result)
- * 			-> err: Error
- * 			-> result: Object matching obj keys but maybe new vals from workers
- * options: Object
- */
-var asyncRecurse = (root, worker, done, options) => {
-	validateArguments(root, iteratee, callback, options)
-
-	options = options ? _.defaults(options, defaultOptions) : defaultOptions;
-
-	q = async.queue(iteratee, options.parallel ? Infinity : 1); // set concurrency to be parallel or waterfall
-
-	let results = clone(root);
-
-	let err = doRecurse(obj, results, worker, options);
-
-	// traversal is finished
-
-	// either traversal ended prematurely
-	if (err) return done(err, null)
-	
-	// or traversal completed and the next time q drains, all workers finished
-	q.drain = () => done(null, result)
-};
-
-
-function doRecurse(obj, results, worker, options, workerQueue) {
-	workerQueue.push(obj);
-
-	if (options.breadthFirst) {
-		let traversalQueue = [obj];
-
-		while (!_.isEmpty(traversalQueue)) {
-			_.each(shift(traversalQueue), (value, key) => {
-				if ((_.isObject(value) && options.includeBranches) ||
-					(!_.isObject(value) && options.includeLeaves)) {
-					workerQueue.push((err) => {
-						worker(value, key, (err, result) => {
-							if (err) return err;
-
-							// value = result?
-						})
-					});
-				}
-
-				if (_.isObject(value)) {
-					traversalQueue.push(value);
+// NOTE: done is only passed so that it can be called prematurely in error case. In success case it
+// does not get called in the doRecurse helper
+function doRecurse(rootObj, iteratee, options, queue, done) {
+	if (!_.isObject(rootObj)) {
+		if (options.includeLeaves) {
+			queue.push(rootObj, (err) => {
+				if (err) {
+					queue.kill();
+					return done(err);
 				}
 			});
 		}
-	} else { //depth first
-		depthFirstRecurse(null, obj, results, worker, options, workerQueue)
+	} else {
+		if (options.includeBranches) {
+			queue.push(rootObj, (err) => {
+				if (err) {
+					queue.kill();
+					return done(err);
+				}
+			});
+		}
+
+		_.each(rootObj, (child, i) => {
+			return doRecurse(child, iteratee, options, queue, done);
+		});
 	}
-}
-
-
-function depthFirstRecurse() {
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
- * Throw a TypeError if validation fails
- */
-function validateArguments(root, iteratee, callback, options) {
-	var orderChoices = ['pre', 'in', 'post'];
-
-	if (!_.isFunction(iteratee)) throw new TypeError('Expected ' + iteratee + ' to be a function');
-	if (!_.isFunction(callback)) throw new TypeError('Expected ' + callback + ' to be a function');
-	if (options && !_.isPlainObject(options)) throw new TypeError('Expected ' + options + ' to be an object');
-
-	if (options) {
-		if (!_.isUndefined(options.includeLeaves)	&& !_.isBoolean(options.includeLeaves))   throw new TypeError('Expected ' + options.includeLeaves   + ' to be a Boolean');
-		if (!_.isUndefined(options.includeBranches) && !_.isBoolean(options.includeBranches)) throw new TypeError('Expected ' + options.includeBranches + ' to be a Boolean');
-		if (!_.isUndefined(options.parallel)        && !_.isBoolean(options.parallel)) 		  throw new TypeError('Expected ' + options.paralell 		+ ' to be a Boolean');
-		if (!_.isUndefined(options.breadthFirst)    && !_.isNumber(options.breadthFirst)) 	  throw new TypeError('Expected ' + options.breadthFirst 	+ ' to be a Boolean');
-		if (!_.isUndefined(options.depth) 			&& !_.isNumber(options.depth)) 		  	  throw new TypeError('Expected ' + options.depth 			+ ' to be a Number');
-	}
-}
-
-
+};
 
 if (typeof module === 'object' && module.exports) {
-  module.exports = asyncRecurse;
+  module.exports = handleInput;
 }
