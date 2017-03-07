@@ -1,7 +1,7 @@
 {
   "name": "async-recurse",
-  "version": "2.1.0",
-  "description": "Run an asynchronous action on each element of an object, then perform a final callback when the entire traversal is finished",
+  "version": "2.1.1",
+  "description": "Traverse JSON or JS objects and perform asynchronous actions easily",
   "main": "index.js",
   "devDependencies": {
     "mocha": "3.1.2",

@@ -1,103 +1,63 @@
 # async-recurse
 
-## Note: Build is unstable. Patch soon.
+I have some JSON and I have no idea how its formatted. There are lots of deeply nested... stuff... and 
+I just need to run some call on each element but the calls are asynchronous and I need wait for all to
+complete. Lets start:
+```
+try {
+	var targetObject = JSON.parse(someJsonStuff);
+}
+
+let iteratee = (value, callback) => {
+	setTimeout(() => {
+		console.log('done with', value)
+		return callback(null); // I can pass truthy to error - which would break the traversal
+	}, 100);	
+};
+```
+
+To use with traditional callback:
 
 ```
-asyncRecurse(targetObject, worker, done, options);
+asyncRecurse(targetObject, iteratee, options, (err) => {
+	if (err) throw Err;
+
+	console.log('good job team');
+});
 ```
 
-### iteratee(key, value, callback
+To use as an ES6 promise, just leave out the last argument:
+```
+asyncRecurse(targetObject, worker, options)
+.then(...)
+.catch(...);
+```
+Or most simply:
+```
+asyncRecurse(targetObject, worker)
+...
+```
 
-Modify the value as you'd like (key is read- only) then call callback(err,
-result) where result will replace the value of the element in the final
-results. Calling the callback with an err value will immaturely terminate the
-traversal of all elements and trigger the done callback immediately. Pass one
-argument as callback(err) if you don't want to modify the results. Key is not
-always the object literal key. It can be the index of an element of an array
-or simply null if includeBranches is on and value is the root.
-
-### done(err, results)
-
-Called when all iteratees during the traversal are completed or if any iteratee
-callbacks with a non-null error. The original object is not mutated but
-results will show the compilation each result of individual iteratees.
+### Basic behavior
+If called as an ES6 Promise, then the worker can itself be a Promise. Either way,
+the worker can always be a function with the arguments value and callback. The worker's
+callback can take an error argument, which if truthy, will prematurely terminate the
+traversal in a similar fashion to how Promise.all will break the iteration if anything fails.
+If you choose to define your worker as a Promise, then you can reject to get the same behavior.
 
 ### Options:
 
 | Name            | Type    | Default  |
 |-----------------|---------|----------|
 | includeLeaves   | Boolean | true     |
-| includeBranches | Boolean | true     |
+| includeBranches | Boolean | false    |
 | parallel		  | Boolean | true	   |
-| breadthFirst	  | Boolean | true     |
-| depth           | Number  | Infinity |
 
-If parallel is off, iteratees will waterfall, blocking the traversal until
-completion. Even if parallel is on, the final callback won't execute until all
-iteratees have completed. !breadthFirst is depthFirst. See
-[here](https://en.wikipedia.org/wiki/Tree_traversal) for more on BFS vs. DFS.
+If parallel is off, the work will be done serially - the next worker won't start
+until the previous finished. The walk is performed as a depth-first pre-order
+traversal and the order serialization will accord.
 
-### Example #1:
-```
-var asyncRecurse = require('async-recurse');
-
-var blogPost = {
-	_id: '20384',
-	comment: {
-		_user: '2f930f',
-		_upvoteUserIds: {
-			up: ['20fj3', '39fjs'],
-			down: ['29fj3', 'f93jf']
-		}
-	},
-	_imageIds: ['20fj3rk4', 'fj3fj3']
-}
-
-var options: {
-	includeLeaves: false,
-	parallel: true
-}
-
-var populateField = (key, value, callback) => {
-	if (isId(value)) {
-		console.log('Now populating ' + key);
-
-		populateTheId(null, callback);
-	} else {
-		callback(null, value);
-	}
-}
-
-var done = (err, results) => {
-	if (err) throw err;
-
-	console.log(results);
-}
-
-asyncRecurse(blogPost, populateField, done, options);
-
-``` 
-
-### Example #2: perform iteratee on elements without changing results
-```
-logField = (key, value, callback) => {
-	console.log('Arrived at: ' + key + ': ' + value + '\n');
-
-	setTimeout(() => {
-		callback(null);
-	}), 100);
-}
-
-done = (err) => {
-	if(err) throw err;
-
-	console.log('Finished traversal');
-}
-
-asyncRecurse(blogPost, logField, done);
-```
-
-
-
+A branch is an Object or Array and a leaf is everything else (in other words if you're parsing
+from JSON a leaf must be a String, Number, Boolean, or null).
 
 by [Dillon Bostwick](http://linkedin.com/in/dillonbostwick)
