@@ -1,8 +1,5 @@
 # async-recurse
 
-I have some JSON and I have no idea how its formatted. There are lots of deeply nested... stuff... and 
-I just need to run some call on each element but the calls are asynchronous and I need wait for all to
-complete. Lets start:
 ```
 try {
 	var targetObject = JSON.parse(someJsonStuff);
@@ -16,17 +13,17 @@ let iteratee = (value, callback) => {
 };
 ```
 
-To use with traditional callback:
+To use with callback:
 
 ```
 asyncRecurse(targetObject, iteratee, options, (err) => {
 	if (err) throw Err;
 
-	console.log('good job team');
+	//...
 });
 ```
 
-To use as an ES6 promise, just leave out the last argument:
+To use as an ES6 promise, do not pass a fourth argument:
 ```
 asyncRecurse(targetObject, worker, options)
 .then(...)
@@ -51,7 +48,7 @@ If you choose to define your worker as a Promise, then you can reject to get the
 |-----------------|---------|----------|
 | includeLeaves   | Boolean | true     |
 | includeBranches | Boolean | false    |
-| parallel		  | Boolean | true	   |
+| parallel	  | Boolean | true     |
 
 If parallel is off, the work will be done serially - the next worker won't start
 until the previous finished. The walk is performed as a depth-first pre-order
@@ -60,4 +57,4 @@ traversal and the order serialization will accord.
 A branch is an Object or Array and a leaf is everything else (in other words if you're parsing
 from JSON a leaf must be a String, Number, Boolean, or null).
 
-by [Dillon Bostwick](http://linkedin.com/in/dillonbostwick)
+by Dillon Bostwick
