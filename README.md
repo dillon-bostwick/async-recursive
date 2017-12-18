@@ -1,11 +1,9 @@
 # async-recurse
 
 ```
-try {
-	var targetObject = JSON.parse(someJsonStuff);
-}
+var targetObject = JSON.parse(someJsonStuff);
 
-let iteratee = (value, callback) => {
+let iterate = (value, callback) => {
 	setTimeout(() => {
 		console.log('done with', value)
 		return callback(null); // I can pass truthy to error - which would break the traversal
@@ -16,14 +14,14 @@ let iteratee = (value, callback) => {
 To use with callback:
 
 ```
-asyncRecurse(targetObject, iteratee, options, (err) => {
+asyncRecurse(targetObject, iterate, options, (err) => {
 	if (err) throw Err;
 
 	//...
 });
 ```
 
-To use as an ES6 promise, do not pass a fourth argument:
+To use as an ES6 promise, simply do not pass a fourth argument:
 ```
 asyncRecurse(targetObject, worker, options)
 .then(...)
