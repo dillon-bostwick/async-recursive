@@ -1,5 +1,5 @@
 # async-recurse
-Basic usage: `asyncRecurse(obj, iterate[, options, callback])`
+Usage: `asyncRecurse(obj, iterate[, options, callback])`
 
 
 ```
@@ -36,11 +36,7 @@ asyncRecurse(targetObject, worker)
 ```
 
 ### Basic behavior
-If called as an ES6 Promise, then the worker can itself be a Promise. Either way,
-the worker can always be a function with the arguments value and callback. The worker's
-callback can take an error argument, which if truthy, will prematurely terminate the
-traversal in a similar fashion to how Promise.all will break the iteration if anything fails.
-If you choose to define your worker as a Promise, then you can reject to get the same behavior.
+If called as an ES6 Promise, then the worker can itself be a Promise. Regardless of whether Promises or callbacks are used, the worker can always be a function with the arguments value and callback. The worker's callback can take an error argument, which if truthy, will prematurely terminate the traversal in a similar fashion to how Promise.all will break the iteration if any Promise fails. If you choose to define your worker as a Promise, then you can reject from your worker to get the same behavior.
 
 ### Options:
 
@@ -51,7 +47,7 @@ If you choose to define your worker as a Promise, then you can reject to get the
 | parallel	  | Boolean | true     |
 
 If parallel is off, the work will be done serially - the next worker won't start
-until the previous finished. The walk is performed as a depth-first pre-order
+until the previous finished. This walk is performed as a depth-first pre-order
 traversal and the order serialization will accord.
 
 A branch is an Object or Array and a leaf is everything else (in other words if you're parsing
