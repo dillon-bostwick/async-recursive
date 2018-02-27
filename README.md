@@ -1,17 +1,19 @@
 # async-recurse
+Basic usage: `asyncRecurse(obj, iterate[, options, callback])`
+
 
 ```
-var targetObject = JSON.parse(someJsonStuff);
+var targetObject = JSON.parse(someJsonObject);
 
 let iterate = (value, callback) => {
 	setTimeout(() => {
 		console.log('done with', value)
-		return callback(null); // I can pass truthy to error - which would break the traversal
-	}, 100);	
+		return callback(null); // I can pass a truthy value here to error the iteration - which would prematurely end the traversal
+	}, 100);
 };
 ```
 
-To use with callback:
+To use with a callback:
 
 ```
 asyncRecurse(targetObject, iterate, options, (err) => {
@@ -21,7 +23,7 @@ asyncRecurse(targetObject, iterate, options, (err) => {
 });
 ```
 
-To use as an ES6 promise, simply do not pass a fourth argument:
+To use as an ES6 Promise, do not pass a fourth argument:
 ```
 asyncRecurse(targetObject, worker, options)
 .then(...)
